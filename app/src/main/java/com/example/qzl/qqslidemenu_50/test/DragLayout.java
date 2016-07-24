@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.Scroller;
 
 import com.example.qzl.qqslidemenu_50.ColorUtil;
 import com.nineoldandroids.view.ViewHelper;
