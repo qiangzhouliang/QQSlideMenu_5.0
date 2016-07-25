@@ -1,12 +1,19 @@
 package com.example.qzl.qqslidemenu_50;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
+
+import com.nineoldandroids.animation.FloatEvaluator;
+import com.nineoldandroids.animation.IntEvaluator;
+import com.nineoldandroids.animation.TypeEvaluator;
+import com.nineoldandroids.view.ViewHelper;
 
 /**
  * Created by Qzl on 2016-07-24.
@@ -18,6 +25,8 @@ public class SlideMenu extends FrameLayout{
     private ViewDragHelper viewDragHelper;
     private int width;//当前SlideMenu的宽
     private float dragRange;//拖拽范围
+    private FloatEvaluator floatEvaluator;//float计算器
+    private IntEvaluator intEvaluator;//int计算器
 
     public SlideMenu(Context context) {
         super(context);
@@ -39,6 +48,8 @@ public class SlideMenu extends FrameLayout{
 
     private void init(){
         viewDragHelper = ViewDragHelper.create(this,callback);
+        floatEvaluator = new FloatEvaluator();
+        intEvaluator = new IntEvaluator();
     }
     /**
      * 当dragLayout的xml布局的结束标签读取完成会执行该方法，此时，会知道自己有几个子View了
@@ -155,6 +166,10 @@ public class SlideMenu extends FrameLayout{
                 }
                 mainView.layout(newLeft,mainView.getTop()+dy,newLeft+mainView.getMeasuredWidth(),mainView.getBottom()+dy);
             }
+            //计算滑动的百分比
+            float fraction = mainView.getLeft()/dragRange;
+            //执行伴随的动画
+            executeAnim(fraction);
         }
         /**
          * 手指抬起执行该方法
@@ -175,6 +190,26 @@ public class SlideMenu extends FrameLayout{
             }
         }
     };
+
+    /**
+     * 执行一系列的动画操作
+     * @param fraction
+     */
+    private void executeAnim(float fraction) {
+        //1 缩小mainView
+//        float scaleValue = 0.8f + 0.2f*(1 - fraction);//1-0.8f
+        ViewHelper.setScaleX(mainView,floatEvaluator.evaluate(fraction,1f,0.8f));
+        ViewHelper.setScaleY(mainView,floatEvaluator.evaluate(fraction,1f,0.8f));
+        //移动menuView
+        ViewHelper.setTranslationX(menuView,intEvaluator.evaluate(fraction,-menuView.getMeasuredWidth()/2,0));
+        //方大menuView
+        ViewHelper.setScaleX(menuView,floatEvaluator.evaluate(fraction,0.5f,1f));
+        ViewHelper.setScaleY(menuView,floatEvaluator.evaluate(fraction,0.5f,1f));
+        //改变menuView的透明度
+        ViewHelper.setAlpha(menuView,floatEvaluator.evaluate(fraction,0.3f,1f));
+        //给SlideMenu的背景添加一个黑色的遮罩效果
+        getBackground().setColorFilter((Integer) ColorUtil.evaluateColor(fraction, Color.BLACK,Color.TRANSPARENT), PorterDuff.Mode.SRC_OVER);
+    }
 
     @Override
     public void computeScroll() {
