@@ -57,6 +57,14 @@ public class SlideMenu extends FrameLayout{
         floatEvaluator = new FloatEvaluator();
         intEvaluator = new IntEvaluator();
     }
+
+    /**
+     * 获取当前的状态
+     * @return
+     */
+    public DragState getCurrentState(){
+        return currentState;
+    }
     /**
      * 当dragLayout的xml布局的结束标签读取完成会执行该方法，此时，会知道自己有几个子View了
      * 一般用来初始化子view的引用
@@ -206,15 +214,35 @@ public class SlideMenu extends FrameLayout{
         public void onViewReleased(View releasedChild, float xvel, float yvel) {
             if (mainView.getLeft() < dragRange/2){
                 //在左半边
-                viewDragHelper.smoothSlideViewTo(mainView,0,0);
-                ViewCompat.postInvalidateOnAnimation(SlideMenu.this);
+                close();
             }else {
                 //在右半边
-                viewDragHelper.smoothSlideViewTo(mainView, (int) dragRange,mainView.getTop());
-                ViewCompat.postInvalidateOnAnimation(SlideMenu.this);
+                open();
+            }
+            //处理用户的稍微滑动(判断速度)
+            if (xvel > 200 && currentState != DragState.Open){
+                open();
+            }else if (xvel < -200 && currentState != DragState.Close){
+                close();
             }
         }
     };
+
+    /**
+     * 打开菜单
+     */
+    public void open() {
+        viewDragHelper.smoothSlideViewTo(mainView, (int) dragRange,mainView.getTop());
+        ViewCompat.postInvalidateOnAnimation(SlideMenu.this);
+    }
+
+    /**
+     * 关闭菜单
+     */
+    public void close() {
+        viewDragHelper.smoothSlideViewTo(mainView,0,0);
+        ViewCompat.postInvalidateOnAnimation(SlideMenu.this);
+    }
 
     /**
      * 执行一系列的动画操作

@@ -22,16 +22,20 @@ public class MainActivity extends Activity {
     private ListView menu_listview,main_listview;
     private SlideMenu slideMenu;
     private ImageView iv_head;
+    private MyLinearLayout my_layout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        menu_listview = (ListView) findViewById(R.id.menu_listview);
-        main_listview = (ListView) findViewById(R.id.main_listview);
-        slideMenu = (SlideMenu) findViewById(R.id.slideMenu);
-        iv_head = (ImageView) findViewById(R.id.iv_head);
-        menu_listview.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,Constant.sCheeseStrings){
+        initView();
+        initData();
+    }
+
+    /**
+     * 初始化数据
+     */
+    private void initData() {
+        menu_listview.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, Constant.sCheeseStrings){
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 TextView textView = (TextView) super.getView(position, convertView, parent);
@@ -74,5 +78,18 @@ public class MainActivity extends Activity {
                 ViewHelper.setAlpha(iv_head,1 - fraction);
             }
         });
+        my_layout.setSlideMenu(slideMenu);
+    }
+
+    /**
+     * 初始化view
+     */
+    private void initView() {
+        setContentView(R.layout.activity_main);
+        menu_listview = (ListView) findViewById(R.id.menu_listview);
+        main_listview = (ListView) findViewById(R.id.main_listview);
+        slideMenu = (SlideMenu) findViewById(R.id.slideMenu);
+        iv_head = (ImageView) findViewById(R.id.iv_head);
+        my_layout = (MyLinearLayout) findViewById(R.id.my_layout);
     }
 }
