@@ -6,6 +6,7 @@ import android.graphics.PorterDuff;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -27,6 +28,7 @@ public class SlideMenu extends FrameLayout{
     private float dragRange;//拖拽范围
     private FloatEvaluator floatEvaluator;//float计算器
     private IntEvaluator intEvaluator;//int计算器
+    private OnDragStateChangeListener listener;
 
     public SlideMenu(Context context) {
         super(context);
@@ -45,7 +47,11 @@ public class SlideMenu extends FrameLayout{
         init();
     }
 
-
+    //定义状态常量
+    enum DragState{
+        Open,Close;
+    }
+    private DragState currentState = DragState.Close;//当前SlideMenu的状态默认是关闭的
     private void init(){
         viewDragHelper = ViewDragHelper.create(this,callback);
         floatEvaluator = new FloatEvaluator();
@@ -166,10 +172,29 @@ public class SlideMenu extends FrameLayout{
                 }
                 mainView.layout(newLeft,mainView.getTop()+dy,newLeft+mainView.getMeasuredWidth(),mainView.getBottom()+dy);
             }
-            //计算滑动的百分比
+            //1 计算滑动的百分比
             float fraction = mainView.getLeft()/dragRange;
-            //执行伴随的动画
+            //2 执行伴随的动画
             executeAnim(fraction);
+//            Log.d("tag","fraction = "+fraction);
+            //3 更改状态，回调listener的方法
+            if(fraction < 0.05f && currentState != DragState.Close){
+                //更改状态为关闭，并回调关闭的方法
+                currentState = DragState.Close;
+                if (listener != null){
+                    listener.onClose();
+                }
+            }else if (fraction > 0.95f && currentState != DragState.Open){
+                //更改状态为打开，并回调打开的方法
+                currentState = DragState.Open;
+                if (listener != null){
+                    listener.onOpen();
+                }
+            }
+            //将drag的fraction暴露给外界
+            if(listener != null){
+                listener.onDraging(fraction);
+            }
         }
         /**
          * 手指抬起执行该方法
@@ -217,5 +242,28 @@ public class SlideMenu extends FrameLayout{
             //如果动画没有结束，在刷新一下
             ViewCompat.postInvalidateOnAnimation(SlideMenu.this);
         }
+    }
+
+    /**
+     * 设置监听方法
+     * @param listener
+     */
+    public void setOnDragStateChangeListener(OnDragStateChangeListener listener){
+        this.listener = listener;
+    }
+    public interface OnDragStateChangeListener{
+        /**
+         * 打开的回调
+         */
+        void onOpen();
+        /**
+         * 关闭的回调
+         */
+        void onClose();
+
+        /**
+         * 正在拖拽中的回调
+         */
+        void onDraging(float fraction);
     }
 }
